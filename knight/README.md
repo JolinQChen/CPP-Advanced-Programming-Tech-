@@ -1,3 +1,4 @@
+`Important: use the g++ command "g++ -o hw1_p3 hw1_p3.cpp -std=c++0x" to compil`
 The Knights of the Order of Fibonacci are preparing a grand feast for their king. There are n knights, and each knight is assigned a distinct number from 1 to n.
 
 When the knights sit down at the roundtable for their feast, they follow a peculiar seating rule: two knights can only sit next to each other if their respective numbers sum to a Fibonacci number.
