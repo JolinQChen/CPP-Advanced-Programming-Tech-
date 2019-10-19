@@ -4,6 +4,10 @@
 The code files in this repository are based on C++, covering the content of: 
 OperatorOverload, Multi-thread(openMP), Socket, MPI
 
-## proj1. Algorithm: https://projecteuler.net/problem=669 The King's Banquet
+## 1. Algorithm: https://projecteuler.net/problem=669 The King's Banquet
 
-## proj2. 
+## 2. OperatorOverriding
+
+## 3. Multi-thread method implementation through openMP
+
+## 4. UDP, socket
