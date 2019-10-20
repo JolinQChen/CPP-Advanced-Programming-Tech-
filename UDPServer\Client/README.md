@@ -1,4 +1,14 @@
 `Important: this file contains the basic command and information of this server-clients system`
+
+## Compiling example for mac users:  
+
+*clang++ -std=c++11 server.cpp -o server*  
+*clang++ -std=c++11 client.cpp -o client*  
+*./server 51717*  
+*./client localhost 51717*
+
+
+
 ## Data Structure
 
 The data sent back and forth are using this following packet structure:
