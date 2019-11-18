@@ -1,0 +1,1 @@
+/usr/local/Cellar/gcc/9.2.0_1/bin/g++-9   -std=c++11 -framework GLUT -framework OpenGL -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/hw6.dir/main.cpp.o  -o hw6 
