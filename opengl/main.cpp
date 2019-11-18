@@ -5,6 +5,9 @@
 #include <stdlib.h> // standard definitions
 #include <OpenGL/gl.h>
 #include <GLUT/glut.h>
+#include <vector>
+#include <time.h>
+using namespace std;
 
 
 #define ESC 27
@@ -30,7 +33,16 @@
 // Camera position
 float x = 0.0, y = 0.0; // initially 5 units south of origin
 float deltaMove = 0.0; // initially camera doesn't move
-float x_board = 0.0, y_board = 0.0;
+
+float y_pawn[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+int move_pawn_index = -1;
+vector<int> moveForwardPawn;
+vector<int> moveBackwardPawn;
+
+float y_knight[2] = {0.0,0.0};
+int move_knight_index = -1;
+vector<int> moveForwardKnight;
+vector<int> moveBackwardKnight;
 
 // Camera direction
 float lx = 0.0, ly = 0.0, lz = 0.0; // camera points initially along y-axis
@@ -42,8 +54,34 @@ bool light1 = false;
 int isDragging = 0; // true when dragging
 int xDragStart = 0; // records the x-coordinate when dragging starts
 
-// map
+// overall map
+int map[8][8] = {
+        {1,1,1,1,1,1,1,1},
+        {1,1,1,1,1,1,1,1},
+        {0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0},
+        {1,1,1,1,1,1,1,1},
+        {1,1,1,1,1,1,1,1}
+};
 
+// pawn map
+int pawnMap[8][2] = {
+        {0,1},
+        {1,1},
+        {2,1},
+        {3,1},
+        {4,1},
+        {5,1},
+        {6,1},
+        {7,1}
+};
+// knight map
+int knightMap[2][2] = {
+        {1,0},
+        {6,0}
+};
 
 //----------------------------------------------------------------------
 // Reshape callback
@@ -317,10 +355,13 @@ void renderScene(void)
     // place 8 light pawn
     for (i = 0; i < 8; i++)
     {
+
         glPushMatrix();
-        glTranslatef(i*1+0.5, 1.5, 0);
+        glTranslatef(i*1+0.5, 1.5+y_pawn[i], 0);
         drawPawn(true);
         glPopMatrix();
+
+
 
     }
 
@@ -338,7 +379,7 @@ void renderScene(void)
     for(i = 0;i<2;i++)
     {
         glPushMatrix();
-        glTranslatef(i * 5 + 1.5,0.5,0.0);
+        glTranslatef(i * 5 + 1.5,0.5+y_knight[i],0.0);
         drawKnight(true);
         glPopMatrix();
     }
@@ -369,6 +410,7 @@ void renderScene(void)
 
 
     // ============== draw dark part ===========================
+
     for (i = 0; i < 8; i++)
     {
         glPushMatrix();
@@ -378,7 +420,7 @@ void renderScene(void)
 
     }
 
-    // place 2 light rook
+    // place 2 dark rook
     for(i = 0; i < 2; i++)
     {
         glPushMatrix();
@@ -387,8 +429,7 @@ void renderScene(void)
         glPopMatrix();
     }
 
-
-    // place 2 knights_light
+// place dark knight
     for(i = 0;i<2;i++)
     {
         glPushMatrix();
@@ -397,7 +438,7 @@ void renderScene(void)
         glPopMatrix();
     }
 
-    // place 2 bishop
+    // place 2 dark bishop
     for(i = 0;i<2;i++)
     {
         glPushMatrix();
@@ -406,14 +447,14 @@ void renderScene(void)
         glPopMatrix();
     }
 
-    // place light queen
+    // place dark queen
     glPushMatrix();
     glTranslatef(3.5,7.5,0.5);
     drawQueen(false);
 
     glPopMatrix();
 
-    // place light king
+    // place dark king
     glPushMatrix();
     glTranslatef(4.5,7.5,0.5);
     drawKing(false);
@@ -464,6 +505,185 @@ void processNormalKeys(unsigned char key, int xx, int yy)
 
         if(light1) glEnable(GL_LIGHT1);
         else glDisable(GL_LIGHT1);
+    }
+    else if(key == 'K' || key == 'k')
+    {
+        bool foundForwardKnight = false;
+        bool foundBackwardKnight = false;
+        int knight_x_tmp = 0;
+        int knight_y_tmp = 0;
+        move_knight_index = -1;
+        moveForwardKnight.clear();
+        moveBackwardKnight.clear();
+        for(int i=0; i<2;i++)
+        {
+            knight_x_tmp = knightMap[i][0];
+            knight_y_tmp = knightMap[i][1];
+            if(knight_y_tmp < 7 && map[knight_y_tmp+1][knight_x_tmp] == 0){
+                foundForwardKnight = true;
+                //move_pawn_index = i;
+                moveForwardKnight.push_back(i);
+            }
+            if(knight_y_tmp > 0 && map[knight_y_tmp-1][knight_x_tmp] == 0)
+            {
+                foundBackwardKnight = true;
+                //move_pawn_index = i;
+                moveBackwardKnight.push_back(i);
+            }
+        }
+        if(foundForwardKnight == true && foundBackwardKnight != true) //只能向前哦
+        {
+            srand((unsigned)time(NULL));
+            int forward_num = moveForwardKnight.size();
+            move_knight_index = rand()%forward_num;
+            move_knight_index = moveForwardKnight[move_knight_index];
+            y_knight[move_knight_index] += 1;
+            //更新map和knightMap
+            knight_x_tmp = knightMap[move_knight_index][0];
+            knight_y_tmp = knightMap[move_knight_index][1];
+            map[knight_y_tmp][knight_x_tmp] = 0;
+            map[knight_y_tmp+1][knight_x_tmp] = 1;
+            knightMap[move_knight_index][1] += 1;
+        }
+        else if(foundBackwardKnight == true && foundForwardKnight == false) //只能向后
+        {
+            // pick one and move backward
+            int backward_num = moveBackwardKnight.size();
+            move_knight_index = rand()%backward_num;
+            move_knight_index = moveBackwardKnight[move_knight_index];
+            y_knight[move_knight_index] -= 1;
+            //更新map和knightMap
+            knight_x_tmp = knightMap[move_knight_index][0];
+            knight_y_tmp = knightMap[move_knight_index][1];
+            map[knight_y_tmp][knight_x_tmp] = 0;
+            map[knight_y_tmp-1][knight_x_tmp] = 1;
+            knightMap[move_knight_index][1] -= 1;
+        }
+        else if(foundBackwardKnight == true && foundForwardKnight == true) //任意向前向后
+        {
+            srand((unsigned)time(NULL));
+            int case_direction = rand()%2;
+            if(case_direction == 0)
+            {
+                // pick one and move forward
+                int forward_num = moveForwardKnight.size();
+                move_knight_index = rand()%forward_num;
+                move_knight_index = moveForwardKnight[move_knight_index];
+                y_knight[move_knight_index] += 1;
+                //更新map和knightMap
+                knight_x_tmp = knightMap[move_knight_index][0];
+                knight_y_tmp = knightMap[move_knight_index][1];
+                map[knight_y_tmp][knight_x_tmp] = 0;
+                map[knight_y_tmp+1][knight_x_tmp] = 1;
+                knightMap[move_knight_index][1] += 1;
+
+            }
+            else if(case_direction == 1)
+            {
+                // pick one and move backward
+                int backward_num = moveBackwardKnight.size();
+                move_knight_index = rand()%backward_num;
+                move_knight_index = moveBackwardKnight[move_knight_index];
+                y_knight[move_knight_index] -= 1;
+                //更新map和knightMap
+                knight_x_tmp = knightMap[move_knight_index][0];
+                knight_y_tmp = knightMap[move_knight_index][1];
+                map[knight_y_tmp][knight_x_tmp] = 0;
+                map[knight_y_tmp-1][knight_x_tmp] = 1;
+                knightMap[move_knight_index][1] -= 1;
+
+            }
+        }
+    }
+
+    else if(key == 'p' || key == 'P')
+    {
+        bool foundForwardPawn = false;
+        bool foundBackwardPawn = false;
+        int pawn_x_tmp = 0;
+        int pawn_y_tmp = 0;
+        move_pawn_index = -1;
+        moveForwardPawn.clear();
+        moveBackwardPawn.clear();
+        for(int i=0; i<8;i++)
+        {
+            pawn_x_tmp = pawnMap[i][0];
+            pawn_y_tmp = pawnMap[i][1];
+            if(pawn_y_tmp < 7 && map[pawn_y_tmp+1][pawn_x_tmp] == 0){
+                foundForwardPawn = true;
+                //move_pawn_index = i;
+                moveForwardPawn.push_back(i);
+            }
+            if(pawn_y_tmp > 0 && map[pawn_y_tmp-1][pawn_x_tmp] == 0)
+            {
+                foundBackwardPawn = true;
+                //move_pawn_index = i;
+                moveBackwardPawn.push_back(i);
+            }
+        }
+        if(foundForwardPawn == true && foundBackwardPawn != true) //只能向前哦
+        {
+            srand((unsigned)time(NULL));
+            int forward_num = moveForwardPawn.size();
+            move_pawn_index = rand()%forward_num;
+            move_pawn_index = moveForwardPawn[move_pawn_index];
+            y_pawn[move_pawn_index] += 1;
+            //更新map和knightMap
+            pawn_x_tmp = pawnMap[move_pawn_index][0];
+            pawn_y_tmp = pawnMap[move_pawn_index][1];
+            map[pawn_y_tmp][pawn_x_tmp] = 0;
+            map[pawn_y_tmp+1][pawn_x_tmp] = 1;
+            pawnMap[move_pawn_index][1] += 1;
+        }
+        else if(foundBackwardPawn == true && foundForwardPawn == false) //只能向后
+        {
+            // pick one and move backward
+            int backward_num = moveBackwardPawn.size();
+            move_pawn_index = rand()%backward_num;
+            move_pawn_index = moveBackwardPawn[move_pawn_index];
+            y_pawn[move_pawn_index] -= 1;
+            //更新map和knightMap
+            pawn_x_tmp = pawnMap[move_pawn_index][0];
+            pawn_y_tmp = pawnMap[move_pawn_index][1];
+            map[pawn_y_tmp][pawn_x_tmp] = 0;
+            map[pawn_y_tmp-1][pawn_x_tmp] = 1;
+            pawnMap[move_pawn_index][1] -= 1;
+        }
+        else if(foundBackwardPawn == true && foundForwardPawn == true) //任意向前向后
+        {
+            srand((unsigned)time(NULL));
+            int case_direction = rand()%2;
+            if(case_direction == 0)
+            {
+                // pick one and move forward
+                int forward_num = moveForwardPawn.size();
+                move_pawn_index = rand()%forward_num;
+                move_pawn_index = moveForwardPawn[move_pawn_index];
+                y_pawn[move_pawn_index] += 1;
+                //更新map和knightMap
+                pawn_x_tmp = pawnMap[move_pawn_index][0];
+                pawn_y_tmp = pawnMap[move_pawn_index][1];
+                map[pawn_y_tmp][pawn_x_tmp] = 0;
+                map[pawn_y_tmp+1][pawn_x_tmp] = 1;
+                pawnMap[move_pawn_index][1] += 1;
+
+            }
+            else if(case_direction == 1)
+            {
+                // pick one and move backward
+                int backward_num = moveBackwardPawn.size();
+                move_pawn_index = rand()%backward_num;
+                move_pawn_index = moveBackwardPawn[move_pawn_index];
+                y_pawn[move_pawn_index] -= 1;
+                //更新map和knightMap
+                pawn_x_tmp = pawnMap[move_pawn_index][0];
+                pawn_y_tmp = pawnMap[move_pawn_index][1];
+                map[pawn_y_tmp][pawn_x_tmp] = 0;
+                map[pawn_y_tmp-1][pawn_x_tmp] = 1;
+                pawnMap[move_pawn_index][1] -= 1;
+
+            }
+        }
     }
 }
 
