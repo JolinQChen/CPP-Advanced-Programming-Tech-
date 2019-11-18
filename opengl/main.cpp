@@ -33,6 +33,7 @@ using namespace std;
 // Camera position
 float x = 0.0, y = 0.0; // initially 5 units south of origin
 float deltaMove = 0.0; // initially camera doesn't move
+float rAngle = 0;
 
 float y_pawn[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 int move_pawn_index = -1;
@@ -348,8 +349,9 @@ void renderScene(void)
             4, -5, 10+lz,
             4, 4, 0.0,
             0.0, 0.0, 1.0);
-    // draw board
-
+    glTranslatef(4.0,4.0,0.0);
+    glRotatef(rAngle,0, 0, 1);
+    glTranslatef(-4,-4,0.0);
     drawChessBoard();
     // ============== draw light part ===========================
     // place 8 light pawn
@@ -500,11 +502,15 @@ void processNormalKeys(unsigned char key, int xx, int yy)
     else if(key == '1')
     {
 
-        if(light1) light0=false;
+        if(light1) light1=false;
         else light1=true;
 
         if(light1) glEnable(GL_LIGHT1);
         else glDisable(GL_LIGHT1);
+    }
+    else if(key == 'r' || key == 'R')
+    {
+        rAngle += 10;
     }
     else if(key == 'K' || key == 'k')
     {
