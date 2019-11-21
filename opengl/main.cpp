@@ -34,6 +34,7 @@ using namespace std;
 float x = 0.0, y = 0.0; // initially 5 units south of origin
 float deltaMove = 0.0; // initially camera doesn't move
 float rAngle = 0;
+bool isEnhance = false;
 
 float y_pawn[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 int move_pawn_index = -1;
@@ -152,7 +153,7 @@ void drawChessBoard()
             }
             else
             {
-                glColor3f(0.6,0.6,0.6);
+                glColor3f(1,1,1);
             }
             glBegin(GL_POLYGON);
             glVertex3f(0.0,0.0,0.0);
@@ -229,11 +230,7 @@ void drawKnight(bool isLight)
     else glColor3f(0.5882, 0.2941, 0);
     glPushMatrix();
     glTranslatef(0.0, 0.0, 0);
-    GLdouble eqn [4]={0.0,0.0,1.0,0.0};
-    glClipPlane(GL_CLIP_PLANE0,eqn);
-    glEnable(GL_CLIP_PLANE0);
     glutSolidTeapot(0.4);
-    glDisable(GL_CLIP_PLANE0);
     glPopMatrix();
 }
 
@@ -381,7 +378,8 @@ void renderScene(void)
     for(i = 0;i<2;i++)
     {
         glPushMatrix();
-        glTranslatef(i * 5 + 1.5,0.5+y_knight[i],0.0);
+        glTranslatef(i * 5 + 1.5,0.5+y_knight[i],0.5);
+        glRotatef(90,1,0,0);
         drawKnight(true);
         glPopMatrix();
     }
@@ -417,9 +415,8 @@ void renderScene(void)
     {
         glPushMatrix();
         glTranslatef(i*1+0.5, 6.5, 0);
-        drawPawn(false);
+        if(isEnhance == false) drawPawn(false);
         glPopMatrix();
-
     }
 
     // place 2 dark rook
@@ -435,7 +432,8 @@ void renderScene(void)
     for(i = 0;i<2;i++)
     {
         glPushMatrix();
-        glTranslatef(i * 5 + 1.5,7.5,0.0);
+        glTranslatef(i * 5 + 1.5,7.5,0.5);
+        glRotatef(90,1,0,0);
         drawKnight(false);
         glPopMatrix();
     }
@@ -479,6 +477,7 @@ void renderScene(void)
 //----------------------------------------------------------------------
 void processNormalKeys(unsigned char key, int xx, int yy)
 {
+
     if (key == ESC || key == 'q' || key == 'Q')
     {
         exit(0);
@@ -490,6 +489,11 @@ void processNormalKeys(unsigned char key, int xx, int yy)
     else if(key == 'u' || key == 'U')
     {
         lz += 0.25;
+    }
+    else if(key == 'e' || key == 'E')
+    {
+        if(isEnhance == false) isEnhance = true;
+        else isEnhance = false;
     }
     else if(key == '0')
     {
@@ -693,61 +697,7 @@ void processNormalKeys(unsigned char key, int xx, int yy)
     }
 }
 
-void pressSpecialKey(int key, int xx, int yy)
-{
-    switch (key)
-    {
-        case GLUT_KEY_UP: deltaMove = 1.0; break;
-        case GLUT_KEY_DOWN: deltaMove = -1.0; break;
-    }
-}
 
-void releaseSpecialKey(int key, int x, int y)
-{
-    switch (key)
-    {
-        case GLUT_KEY_UP: deltaMove = 0.0; break;
-        case GLUT_KEY_DOWN: deltaMove = 0.0; break;
-    }
-}
-
-//----------------------------------------------------------------------
-// Process mouse drag events
-//
-// This is called when dragging motion occurs. The variable
-// angle stores the camera angle at the instance when dragging
-// started, and deltaAngle is a additional angle based on the
-// mouse movement since dragging started.
-//----------------------------------------------------------------------
-void mouseMove(int x, int y)
-{
-    if (isDragging)
-    { // only when dragging
-        // update the change in angle
-        deltaAngle = (x - xDragStart) * 0.005;
-
-        // camera's direction is set to angle + deltaAngle
-        lx = -sin(angle + deltaAngle);
-        ly = cos(angle + deltaAngle);
-    }
-}
-
-void mouseButton(int button, int state, int x, int y)
-{
-    if (button == GLUT_LEFT_BUTTON)
-    {
-        if (state == GLUT_DOWN)
-        { // left mouse button pressed
-            isDragging = 1; // start dragging
-            xDragStart = x; // save x where button first pressed
-        }
-        else
-        { /* (state = GLUT_UP) */
-            angle += deltaAngle; // update camera turning angle
-            isDragging = 0; // no longer dragging
-        }
-    }
-}
 
 //----------------------------------------------------------------------
 // Main program  - standard GLUT initializations and callbacks
@@ -779,12 +729,8 @@ int main(int argc, char **argv)
     glutDisplayFunc(renderScene); // (re)display callback
     glutIdleFunc(update); // incremental update
     glutIgnoreKeyRepeat(1); // ignore key repeat when holding key down
-    glutMouseFunc(mouseButton); // process mouse button push/release
-    glutMotionFunc(mouseMove); // process mouse dragging motion
     glutKeyboardFunc(processNormalKeys); // process standard key clicks
-    glutSpecialFunc(pressSpecialKey); // process special key pressed
-    // Warning: Nonstandard function! Delete if desired.
-    glutSpecialUpFunc(releaseSpecialKey); // process special key release
+
 
     // OpenGL init
 
