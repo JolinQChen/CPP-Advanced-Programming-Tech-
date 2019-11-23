@@ -74,12 +74,12 @@ preinstall:
 CMakeFiles/hw6.dir/all:
 	$(MAKE) -f CMakeFiles/hw6.dir/build.make CMakeFiles/hw6.dir/depend
 	$(MAKE) -f CMakeFiles/hw6.dir/build.make CMakeFiles/hw6.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/jolinchen/Documents/GitHub/ECE6122-Advanced-Programming-Tech-/opengl/cmake-build-debug/CMakeFiles --progress-num=1,2 "Built target hw6"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/jolinchen/Documents/GitHub/ECE6122-Advanced-Programming-Tech-/opengl/cmake-build-debug/CMakeFiles --progress-num=1,2,3 "Built target hw6"
 .PHONY : CMakeFiles/hw6.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/hw6.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jolinchen/Documents/GitHub/ECE6122-Advanced-Programming-Tech-/opengl/cmake-build-debug/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jolinchen/Documents/GitHub/ECE6122-Advanced-Programming-Tech-/opengl/cmake-build-debug/CMakeFiles 3
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/hw6.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jolinchen/Documents/GitHub/ECE6122-Advanced-Programming-Tech-/opengl/cmake-build-debug/CMakeFiles 0
 .PHONY : CMakeFiles/hw6.dir/rule

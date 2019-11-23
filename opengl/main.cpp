@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include "Model.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h> // standard definitions
@@ -7,6 +7,7 @@
 #include <GLUT/glut.h>
 #include <vector>
 #include <time.h>
+
 using namespace std;
 
 
@@ -29,22 +30,21 @@ using namespace std;
 
 
 
-
 // Camera position
 float x = 0.0, y = 0.0; // initially 5 units south of origin
 float deltaMove = 0.0; // initially camera doesn't move
 float rAngle = 0;
 bool isEnhance = false;
 
+
 float y_pawn[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 int move_pawn_index = -1;
 vector<int> moveForwardPawn;
 vector<int> moveBackwardPawn;
 
-float y_knight[2] = {0.0,0.0};
-int move_knight_index = -1;
-vector<int> moveForwardKnight;
-vector<int> moveBackwardKnight;
+//float y_knight[2] = {0.0,0.0};
+vector<int> moveKnight1Direction;
+vector<int> moveKnight2Direction;
 
 // Camera direction
 float lx = 0.0, ly = 0.0, lz = 0.0; // camera points initially along y-axis
@@ -94,20 +94,41 @@ int knightMap[2][2] = {
 // plane at depth 100. The viewport is the entire window.
 //
 //----------------------------------------------------------------------
+
+
+
+// ---------- enhanced model ----------------
+
+Model   Pawn("../model/pawn.obj");
+Model   Rook("../model/rook.obj");
+Model   Knight("../model/knight.obj");
+Model   Bishop("../model/bishop.obj");
+Model   King("../model/king.obj");
+Model   Queen("../model/queen.obj");
+// ---------- enhanced model ----------------
+
+
 void init(void)
 {
-    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-    GLfloat mat_shininess[] = { 50.0 };
-    GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glShadeModel(GL_SMOOTH);
+    glClearColor(1.0, 0.0, 0.0, 0.0);
 
-    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_SMOOTH);
+    glDepthFunc(GL_LEQUAL);
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_NORMALIZE);
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+    //glEnable(GL_COLOR_MATERIAL);
 
     glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+
+
+
+
+    glEnable(GL_COLOR_MATERIAL);
+
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -327,10 +348,12 @@ void renderScene(void)
     GLfloat light1_position[] = { -5.0, -5.0, 8.0};
     GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat mat_shininess[] = { 50.0 };
+
+
     glShadeModel(GL_SMOOTH);
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-    //glLightfv(GL_LIGHT0, GL_POSITION, light1_position);
+    glLightfv(GL_LIGHT0, GL_POSITION, light1_position);
 
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
@@ -338,6 +361,9 @@ void renderScene(void)
     glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
     glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
     glEnable(GL_DEPTH_TEST);
+
+
+
 
 
     // Set the camera centered at (x,y,1) and looking along directional
@@ -350,6 +376,7 @@ void renderScene(void)
     glRotatef(rAngle,0, 0, 1);
     glTranslatef(-4,-4,0.0);
     drawChessBoard();
+
     // ============== draw light part ===========================
     // place 8 light pawn
     for (i = 0; i < 8; i++)
@@ -357,7 +384,15 @@ void renderScene(void)
 
         glPushMatrix();
         glTranslatef(i*1+0.5, 1.5+y_pawn[i], 0);
-        drawPawn(true);
+        if(!isEnhance) drawPawn(true);
+        else {
+
+            glScalef(0.015f, 0.015f, 0.015f);
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glColor3f(1.0, 1.0, 0.9569);
+
+            Pawn.Draw();
+        }
         glPopMatrix();
 
 
@@ -368,8 +403,19 @@ void renderScene(void)
     for(i = 0; i < 2; i++)
     {
         glPushMatrix();
-        glTranslatef(i * 7 + 0.5,0.5,0.375);
-        drawRook(true);
+        glTranslatef(i * 7 + 0.5,0.5,0.0);
+        if(!isEnhance)
+        {
+            glTranslatef(0,0,0.375);
+            drawRook(true);
+        }
+        else {
+            glScalef(0.01f, 0.01f, 0.01f);
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glColor3f(1.0, 1.0, 0.9569);
+
+            Rook.Draw();
+        }
         glPopMatrix();
     }
 
@@ -378,9 +424,23 @@ void renderScene(void)
     for(i = 0;i<2;i++)
     {
         glPushMatrix();
-        glTranslatef(i * 5 + 1.5,0.5+y_knight[i],0.5);
-        glRotatef(90,1,0,0);
-        drawKnight(true);
+        //glTranslatef(i * 5 + 1.5 + ,0.5+y_knight[i],0);
+        glTranslatef(knightMap[i][0]+0.5,knightMap[i][1]+0.5,0);
+
+        if(!isEnhance)
+        {
+            glTranslatef(0,0,0.5);
+            glRotatef(90,1,0,0);
+            drawKnight(true);
+        }
+        else {
+            glScalef(0.01f, 0.01f, 0.01f);
+
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glColor3f(1.0, 1.0, 0.9569);
+            Knight.Draw();
+
+        }
         glPopMatrix();
     }
 
@@ -389,21 +449,47 @@ void renderScene(void)
     {
         glPushMatrix();
         glTranslatef(i * 3 + 2.5,0.5,0.0);
-        drawBishop(true);
+        if(!isEnhance) drawBishop(true);
+        else {
+            glScalef(0.01f, 0.01f, 0.01f);
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glColor3f(1.0, 1.0, 0.9569);
+            Bishop.Draw();
+        }
         glPopMatrix();
     }
 
     // place light queen
     glPushMatrix();
-    glTranslatef(3.5,0.5,0.5);
-    drawQueen(true);
+    glTranslatef(3.5,0.5,0.0);
+    if(!isEnhance)
+    {
+        glTranslatef(0,0,0.5);
+        drawQueen(true);
+    }
+    else {
+        glScalef(0.01f, 0.01f, 0.01);
+        glRotatef(90, 1.0f, 0.0f, 0.0f);
+        glColor3f(1.0, 1.0, 0.9569);
+        Queen.Draw();
+    }
 
     glPopMatrix();
 
     // place light king
     glPushMatrix();
-    glTranslatef(4.5,0.5,0.5);
-    drawKing(true);
+    glTranslatef(4.5,0.5,0.0);
+    if(!isEnhance)
+    {
+        glTranslatef(0,0,0.5);
+        drawKing(true);
+    }
+    else {
+        glScalef(0.01f, 0.01f, 0.01f);
+        glRotatef(90, 1.0f, 0.0f, 0.0f);
+        glColor3f(1.0, 1.0, 0.9569);
+        King.Draw();
+    }
 
     glPopMatrix();
     // ============== draw light part ===========================
@@ -415,7 +501,15 @@ void renderScene(void)
     {
         glPushMatrix();
         glTranslatef(i*1+0.5, 6.5, 0);
-        if(isEnhance == false) drawPawn(false);
+        if(!isEnhance) {
+            drawPawn(false);
+        } else{
+            glScalef(0.015f, 0.015f, 0.015f);
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glColor3f(0.5882, 0.2941, 0);
+
+            Pawn.Draw();
+        }
         glPopMatrix();
     }
 
@@ -423,8 +517,19 @@ void renderScene(void)
     for(i = 0; i < 2; i++)
     {
         glPushMatrix();
-        glTranslatef(i * 7 + 0.5,7.5,0.375);
-        drawRook(false);
+        glTranslatef(i * 7 + 0.5,7.5,0.0);
+        if(!isEnhance)
+        {
+            glTranslatef(0,0,0.375);
+            drawRook(false);
+        }
+        else {
+            glScalef(0.01f, 0.01f, 0.01f);
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glColor3f(0.5882, 0.2941, 0);
+
+            Rook.Draw();
+        }
         glPopMatrix();
     }
 
@@ -432,9 +537,25 @@ void renderScene(void)
     for(i = 0;i<2;i++)
     {
         glPushMatrix();
-        glTranslatef(i * 5 + 1.5,7.5,0.5);
-        glRotatef(90,1,0,0);
-        drawKnight(false);
+        glTranslatef(i * 5 + 1.5,7.5,0.0);
+        if(!isEnhance)
+        {
+            glTranslatef(0,0,0.5);
+            glRotatef(90,1,0,0);
+            glRotatef(90, 0.0f, 1.0f, 0.0f);
+            drawKnight(false);
+        }
+        else {
+            glScalef(0.01f, 0.01f, 0.01f);
+
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glRotatef(180, 0.0f, 1.0f, 0.0f);
+            glColor3f(0.5882, 0.2941, 0);
+
+
+
+            Knight.Draw();
+        }
         glPopMatrix();
     }
 
@@ -443,21 +564,54 @@ void renderScene(void)
     {
         glPushMatrix();
         glTranslatef(i * 3 + 2.5,7.5,0.0);
-        drawBishop(false);
+        if(!isEnhance)
+        {
+
+            drawBishop(false);
+        }
+        else {
+            glScalef(0.01f, 0.01f, 0.01f);
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glColor3f(0.5882, 0.2941, 0);
+
+            Bishop.Draw();
+        }
         glPopMatrix();
     }
 
     // place dark queen
     glPushMatrix();
-    glTranslatef(3.5,7.5,0.5);
-    drawQueen(false);
+    glTranslatef(3.5,7.5,0);
+    if(!isEnhance)
+    {
+        glTranslatef(0,0,0.5);
+        drawQueen(false);
+    }
+    else {
+        glScalef(0.01f, 0.01f, 0.01f);
+        glRotatef(90, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.5882, 0.2941, 0);
+
+        Queen.Draw();
+    }
 
     glPopMatrix();
 
     // place dark king
     glPushMatrix();
-    glTranslatef(4.5,7.5,0.5);
-    drawKing(false);
+    glTranslatef(4.5,7.5,0.0);
+    if(!isEnhance)
+    {
+        glTranslatef(0,0,0.5);
+        drawKing(false);
+    }
+    else {
+        glScalef(0.01f, 0.01f, 0.01f);
+        glRotatef(90, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.5882, 0.2941, 0);
+
+        King.Draw();
+    }
 
     glPopMatrix();
     // ============== draw dark part ===========================
@@ -482,6 +636,11 @@ void processNormalKeys(unsigned char key, int xx, int yy)
     {
         exit(0);
     }
+    else if(key == 'e' || key == 'E')
+    {
+        if(isEnhance == true) isEnhance=false;
+        else isEnhance = true;
+    }
     else if(key == 'd' || key == 'D')
     {
         lz -= 0.25;
@@ -489,11 +648,6 @@ void processNormalKeys(unsigned char key, int xx, int yy)
     else if(key == 'u' || key == 'U')
     {
         lz += 0.25;
-    }
-    else if(key == 'e' || key == 'E')
-    {
-        if(isEnhance == false) isEnhance = true;
-        else isEnhance = false;
     }
     else if(key == '0')
     {
@@ -518,92 +672,172 @@ void processNormalKeys(unsigned char key, int xx, int yy)
     }
     else if(key == 'K' || key == 'k')
     {
-        bool foundForwardKnight = false;
-        bool foundBackwardKnight = false;
+        bool fineKnight=false;
         int knight_x_tmp = 0;
         int knight_y_tmp = 0;
-        move_knight_index = -1;
-        moveForwardKnight.clear();
-        moveBackwardKnight.clear();
-        for(int i=0; i<2;i++)
+        int direction = -1;
+        int move_knight_index = -1;
+
+
+        moveKnight1Direction.clear();
+        moveKnight2Direction.clear();
+        for(int i=0; i<2; i++)
         {
             knight_x_tmp = knightMap[i][0];
             knight_y_tmp = knightMap[i][1];
-            if(knight_y_tmp < 7 && map[knight_y_tmp+1][knight_x_tmp] == 0){
-                foundForwardKnight = true;
-                //move_pawn_index = i;
-                moveForwardKnight.push_back(i);
-            }
-            if(knight_y_tmp > 0 && map[knight_y_tmp-1][knight_x_tmp] == 0)
+            // 上1右2，case0
+            if(knight_x_tmp < 6 && knight_y_tmp < 7 && map[knight_y_tmp+1][knight_x_tmp+2] == 0)
             {
-                foundBackwardKnight = true;
-                //move_pawn_index = i;
-                moveBackwardKnight.push_back(i);
+                fineKnight = true;
+                if(i==0) moveKnight1Direction.push_back(0);
+                else moveKnight2Direction.push_back(0);
+            }
+            // 上2右1，case1
+            if(knight_x_tmp<7 && knight_y_tmp < 6 && map[knight_y_tmp+2][knight_x_tmp+1] == 0)
+            {
+                fineKnight = true;
+                if(i==0) moveKnight1Direction.push_back(1);
+                else moveKnight2Direction.push_back(1);
+            }
+            // 上2左1, case2
+            if(knight_x_tmp > 0 && knight_y_tmp < 6 && map[knight_y_tmp+2][knight_x_tmp-1] == 0)
+            {
+                fineKnight = true;
+                if(i==0) moveKnight1Direction.push_back(2);
+                else moveKnight2Direction.push_back(2);
+            }
+            // 上1左2，case3
+            if(knight_x_tmp >1 && knight_y_tmp <7 && map[knight_y_tmp + 1][knight_x_tmp-2] == 0)
+            {
+                fineKnight = true;
+                if(i==0) moveKnight1Direction.push_back(3);
+                else moveKnight2Direction.push_back(3);
+            }
+            //下1左2，case4
+            if(knight_x_tmp > 2 && knight_y_tmp > 1 && map[knight_y_tmp-1][knight_x_tmp-2] == 0)
+            {
+                fineKnight = true;
+                if(i==0) moveKnight1Direction.push_back(4);
+                else moveKnight2Direction.push_back(4);
+            }
+            // 下2左1，case5
+            if(knight_x_tmp > 0 && knight_y_tmp > 1 && map[knight_y_tmp-2][knight_x_tmp-1]==0)
+            {
+                fineKnight = true;
+                if(i==0) moveKnight1Direction.push_back(5);
+                else moveKnight2Direction.push_back(5);
+            }
+            // 下2右1，case6
+            if(knight_x_tmp < 7 && knight_y_tmp > 1 && map[knight_y_tmp-2][knight_x_tmp+1]==0)
+            {
+                fineKnight = true;
+                if(i==0) moveKnight1Direction.push_back(6);
+                else moveKnight2Direction.push_back(6);
+            }
+            // 下1右2，case7
+            if(knight_x_tmp < 6 && knight_y_tmp > 0 && map[knight_y_tmp-1][knight_x_tmp+2]==0)
+            {
+                fineKnight = true;
+                if(i==0) moveKnight1Direction.push_back(7);
+                else moveKnight2Direction.push_back(7);
             }
         }
-        if(foundForwardKnight == true && foundBackwardKnight != true) //只能向前哦
-        {
-            srand((unsigned)time(NULL));
-            int forward_num = moveForwardKnight.size();
-            move_knight_index = rand()%forward_num;
-            move_knight_index = moveForwardKnight[move_knight_index];
-            y_knight[move_knight_index] += 1;
-            //更新map和knightMap
-            knight_x_tmp = knightMap[move_knight_index][0];
-            knight_y_tmp = knightMap[move_knight_index][1];
-            map[knight_y_tmp][knight_x_tmp] = 0;
-            map[knight_y_tmp+1][knight_x_tmp] = 1;
-            knightMap[move_knight_index][1] += 1;
-        }
-        else if(foundBackwardKnight == true && foundForwardKnight == false) //只能向后
-        {
-            // pick one and move backward
-            int backward_num = moveBackwardKnight.size();
-            move_knight_index = rand()%backward_num;
-            move_knight_index = moveBackwardKnight[move_knight_index];
-            y_knight[move_knight_index] -= 1;
-            //更新map和knightMap
-            knight_x_tmp = knightMap[move_knight_index][0];
-            knight_y_tmp = knightMap[move_knight_index][1];
-            map[knight_y_tmp][knight_x_tmp] = 0;
-            map[knight_y_tmp-1][knight_x_tmp] = 1;
-            knightMap[move_knight_index][1] -= 1;
-        }
-        else if(foundBackwardKnight == true && foundForwardKnight == true) //任意向前向后
-        {
-            srand((unsigned)time(NULL));
-            int case_direction = rand()%2;
-            if(case_direction == 0)
-            {
-                // pick one and move forward
-                int forward_num = moveForwardKnight.size();
-                move_knight_index = rand()%forward_num;
-                move_knight_index = moveForwardKnight[move_knight_index];
-                y_knight[move_knight_index] += 1;
-                //更新map和knightMap
-                knight_x_tmp = knightMap[move_knight_index][0];
-                knight_y_tmp = knightMap[move_knight_index][1];
-                map[knight_y_tmp][knight_x_tmp] = 0;
-                map[knight_y_tmp+1][knight_x_tmp] = 1;
-                knightMap[move_knight_index][1] += 1;
+        srand((unsigned)time(NULL));
 
-            }
-            else if(case_direction == 1)
-            {
-                // pick one and move backward
-                int backward_num = moveBackwardKnight.size();
-                move_knight_index = rand()%backward_num;
-                move_knight_index = moveBackwardKnight[move_knight_index];
-                y_knight[move_knight_index] -= 1;
-                //更新map和knightMap
-                knight_x_tmp = knightMap[move_knight_index][0];
-                knight_y_tmp = knightMap[move_knight_index][1];
-                map[knight_y_tmp][knight_x_tmp] = 0;
-                map[knight_y_tmp-1][knight_x_tmp] = 1;
-                knightMap[move_knight_index][1] -= 1;
+        if(moveKnight1Direction.size()!=0 && moveKnight2Direction.size()==0)
+        {
+            move_knight_index = 0;
+        }
+        else if(moveKnight1Direction.size()==0 && moveKnight2Direction.size()!=0)
+        {
+            move_knight_index = 1;
 
+        }
+        else if(moveKnight1Direction.size()!=0 && moveKnight2Direction.size()!=0)
+        {
+            move_knight_index = rand()%2;
+        }
+        if(move_knight_index == 1)
+        {
+            direction = rand() % (moveKnight2Direction.size());
+            direction = moveKnight2Direction[direction];
+        }
+        else if(move_knight_index == 0)
+        {
+            direction = rand() % (moveKnight1Direction.size());
+            direction = moveKnight1Direction[direction];
+        }
+        if(direction != -1)
+        {
+            switch (direction)
+            {
+                case 0:
+                    knight_x_tmp = knightMap[move_knight_index][0];
+                    knight_y_tmp = knightMap[move_knight_index][1];
+                    map[knight_y_tmp][knight_x_tmp] = 0;
+                    map[knight_y_tmp+1][knight_x_tmp+2] = 1;
+                    knightMap[move_knight_index][0] += 2;
+                    knightMap[move_knight_index][1] += 1;
+                    break;
+                case 1:
+                    knight_x_tmp = knightMap[move_knight_index][0];
+                    knight_y_tmp = knightMap[move_knight_index][1];
+                    map[knight_y_tmp][knight_x_tmp] = 0;
+                    map[knight_y_tmp+2][knight_x_tmp+1] = 1;
+                    knightMap[move_knight_index][0] += 1;
+                    knightMap[move_knight_index][1] += 2;
+                    break;
+                case 2:
+                    knight_x_tmp = knightMap[move_knight_index][0];
+                    knight_y_tmp = knightMap[move_knight_index][1];
+                    map[knight_y_tmp][knight_x_tmp] = 0;
+                    map[knight_y_tmp+2][knight_x_tmp-1] = 1;
+                    knightMap[move_knight_index][0] -= 1;
+                    knightMap[move_knight_index][1] += 2;
+                    break;
+                case 3:
+                    knight_x_tmp = knightMap[move_knight_index][0];
+                    knight_y_tmp = knightMap[move_knight_index][1];
+                    map[knight_y_tmp][knight_x_tmp] = 0;
+                    map[knight_y_tmp+1][knight_x_tmp-2] = 1;
+                    knightMap[move_knight_index][0] -= 2;
+                    knightMap[move_knight_index][1] += 1;
+                    break;
+                case 4:
+                    knight_x_tmp = knightMap[move_knight_index][0];
+                    knight_y_tmp = knightMap[move_knight_index][1];
+                    map[knight_y_tmp][knight_x_tmp] = 0;
+                    map[knight_y_tmp-1][knight_x_tmp-2] = 1;
+                    knightMap[move_knight_index][0] -= 2;
+                    knightMap[move_knight_index][1] -= 1;
+                    break;
+                case 5:
+                    knight_x_tmp = knightMap[move_knight_index][0];
+                    knight_y_tmp = knightMap[move_knight_index][1];
+                    map[knight_y_tmp][knight_x_tmp] = 0;
+                    map[knight_y_tmp-2][knight_x_tmp-1] = 1;
+                    knightMap[move_knight_index][0] -= 1;
+                    knightMap[move_knight_index][1] -= 2;
+                    break;
+                case 6:
+                    knight_x_tmp = knightMap[move_knight_index][0];
+                    knight_y_tmp = knightMap[move_knight_index][1];
+                    map[knight_y_tmp][knight_x_tmp] = 0;
+                    map[knight_y_tmp-2][knight_x_tmp+1] = 1;
+                    knightMap[move_knight_index][0] += 1;
+                    knightMap[move_knight_index][1] -= 2;
+                    break;
+                case 7:
+                    knight_x_tmp = knightMap[move_knight_index][0];
+                    knight_y_tmp = knightMap[move_knight_index][1];
+                    map[knight_y_tmp][knight_x_tmp] = 0;
+                    map[knight_y_tmp-1][knight_x_tmp+2] = 1;
+                    knightMap[move_knight_index][0] += 2;
+                    knightMap[move_knight_index][1] -= 1;
+                    break;
             }
         }
+
     }
 
     else if(key == 'p' || key == 'P')
@@ -717,8 +951,9 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowPosition(100, 100);
     glutInitWindowSize(600, 600);
-    glutCreateWindow("Winter Wonderland");
+    glutCreateWindow("3D Chess");
 
+    init();
 
 
 

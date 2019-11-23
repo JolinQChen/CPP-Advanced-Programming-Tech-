@@ -123,6 +123,33 @@ hw6/fast:
 	$(MAKE) -f CMakeFiles/hw6.dir/build.make CMakeFiles/hw6.dir/build
 .PHONY : hw6/fast
 
+Model.o: Model.cpp.o
+
+.PHONY : Model.o
+
+# target to build an object file
+Model.cpp.o:
+	$(MAKE) -f CMakeFiles/hw6.dir/build.make CMakeFiles/hw6.dir/Model.cpp.o
+.PHONY : Model.cpp.o
+
+Model.i: Model.cpp.i
+
+.PHONY : Model.i
+
+# target to preprocess a source file
+Model.cpp.i:
+	$(MAKE) -f CMakeFiles/hw6.dir/build.make CMakeFiles/hw6.dir/Model.cpp.i
+.PHONY : Model.cpp.i
+
+Model.s: Model.cpp.s
+
+.PHONY : Model.s
+
+# target to generate assembly for a file
+Model.cpp.s:
+	$(MAKE) -f CMakeFiles/hw6.dir/build.make CMakeFiles/hw6.dir/Model.cpp.s
+.PHONY : Model.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -159,6 +186,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... hw6"
+	@echo "... Model.o"
+	@echo "... Model.i"
+	@echo "... Model.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

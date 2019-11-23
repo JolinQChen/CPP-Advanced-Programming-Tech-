@@ -82,6 +82,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/Users/jolinchen/Documents/GitHub/ECE6122-Advanced-Programming-Tech-/opengl/Model.cpp">
+			<Option target="hw6"/>
+		</Unit>
+		<Unit filename="/Users/jolinchen/Documents/GitHub/ECE6122-Advanced-Programming-Tech-/opengl/Model.h">
+			<Option target="hw6"/>
+		</Unit>
 		<Unit filename="/Users/jolinchen/Documents/GitHub/ECE6122-Advanced-Programming-Tech-/opengl/main.cpp">
 			<Option target="hw6"/>
 		</Unit>
